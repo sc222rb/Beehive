@@ -8,6 +8,7 @@
 import express from 'express'
 import { HiveController } from '../../../controllers/api/HiveController.js'
 import { authenticateJWT } from '../../../middlewares/auth.js'
+import { router as statusRouter } from './statusRouter.js'
 
 export const router = express.Router()
 
@@ -192,3 +193,6 @@ router.delete('/:id',
   authenticateJWT,
   (req, res, next) => controller.delete(req, res, next)
 )
+
+// Use the status router for /hives/:id/status routes
+router.use('/:id/status', statusRouter)
