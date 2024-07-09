@@ -4,6 +4,7 @@
 
 .kaggle.json
 data/*
+.eslintrc.json
 ### Linux ###
 *~
 
