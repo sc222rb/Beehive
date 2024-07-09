@@ -9,6 +9,7 @@ import express from 'express'
 import { HiveController } from '../../../controllers/api/HiveController.js'
 import { authenticateJWT } from '../../../middlewares/auth.js'
 import { router as statusRouter } from './statusRouter.js'
+import { router as harvestRouter } from './harvestRouter.js'
 
 export const router = express.Router()
 
@@ -196,3 +197,6 @@ router.delete('/:id',
 
 // Use the status router for /hives/:id/status routes
 router.use('/:id/status', statusRouter)
+
+// Use the harvest router for /hives/:id/harvest routes
+router.use('/:id/harvests', harvestRouter)
