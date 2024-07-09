@@ -6,8 +6,10 @@
 
 import { HiveModel } from '../../models/HiveModel.js'
 import { HarvestModel } from '../../models/HarvestModel.js'
+import { SubscriptionModel } from '../../models/SubscriptionModel.js'
 import createError from 'http-errors'
 import mongoose from 'mongoose'
+import fetch from 'node-fetch'
 
 /**
  * Encapsulates a controller.
@@ -74,8 +76,126 @@ export class HarvestController {
         .location(location.href)
         .status(201)
         .json(harvestObj)
+
+      await this.notifySubscribers(hiveId, harvestDoc)
     } catch (error) {
       next(error)
+    }
+  }
+
+  /**
+   * Notify subscribers about a new harvest.
+   *
+   * @param {string} hiveId - ID of the hive.
+   * @param {object} harvestDoc - Newly created harvest object.
+   */
+  async notifySubscribers (hiveId, harvestDoc) {
+    try {
+      const subscriptions = await SubscriptionModel.find({ hiveId })
+      for (const subscription of subscriptions) {
+        console.log(`Notifying subscriber at ${subscription.postUrl}`)
+        const payload = {
+          eventType: 'new_harvest',
+          data: harvestDoc
+        }
+        const response = await fetch(subscription.postUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        })
+        if (!response.ok) {
+          console.error(`Failed to notify subscriber at ${subscription.postUrl}: ${response.statusText}`)
+          // Optionally handle retry logic or error handling here
+        } else {
+          console.log(`Successfully notified subscriber at ${subscription.postUrl}`)
+        }
+      }
+    } catch (error) {
+      console.error('Error notifying subscribers:', error)
+    }
+  }
+
+  /**
+   * Subscribe to harvest report notifications for a hive.
+   *
+   * @param {object} req - Express request object.
+   * @param {object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   */
+  async subscribe (req, res, next) {
+    try {
+      const { postUrl } = req.body
+      const hiveId = req.doc.id
+
+      const subscriptionDoc = await SubscriptionModel.create({
+        hiveId,
+        postUrl
+      })
+
+      const location = new URL(`${req.protocol}://${req.get('host')}${req.baseUrl}/${subscriptionDoc.id}`)
+
+      const subscriptionObj = subscriptionDoc.toObject()
+      subscriptionObj._links = {
+        self: { href: location.href },
+        unsubscribe: { href: location.href, method: 'DELETE' }
+      }
+      res
+        .location(location.href)
+        .status(201)
+        .json(subscriptionObj)
+    } catch (error) {
+      next(createError(500, 'Failed to subscribe to harvest reports', { cause: error }))
+    }
+  }
+
+  /**
+   * Unsubscribe from harvest report notifications for a hive.
+   *
+   * @param {object} req - Express request object.
+   * @param {object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   */
+  async unsubscribe (req, res, next) {
+    try {
+      const hiveId = req.doc.id
+
+      await SubscriptionModel.deleteMany({ hiveId })
+      res
+        .status(204)
+        .end()
+    } catch (error) {
+      next(createError(500, 'Failed to unsubscribe from harvest reports', { cause: error }))
+    }
+  }
+
+  /**
+   * Get list of harvest report subscriptions for a hive.
+   *
+   * @param {object} req - Express request object.
+   * @param {object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   */
+  async listSubscriptions (req, res, next) {
+    try {
+      const hiveId = req.doc.id
+      const subscriptions = await SubscriptionModel.find({ hiveId })
+
+      const subscriptionObjs = subscriptions.map(subscription => {
+        const subscriptionObj = subscription.toObject()
+        subscriptionObj._links = {
+          self: { href: `${req.protocol}://${req.get('host')}${req.baseUrl}/${subscription.id}` },
+          unsubscribe: { href: `${req.protocol}://${req.get('host')}${req.baseUrl}/${subscription.id}`, method: 'DELETE' }
+        }
+        return subscriptionObj
+      })
+
+      res
+        .status(200)
+        .json(subscriptionObjs)
+    } catch (error) {
+      next(createError(500, 'Failed to fetch harvest report subscriptions', { cause: error }))
     }
   }
 }
