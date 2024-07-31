@@ -16,6 +16,3 @@ This API uses the Beehive metrics dataset from Kaggle to mock some of the real-l
 * Hive Management: Register, update, or delete beehives.
 * Honey Harvesting: Farmers can report the amount of honey harvested on a certain date.
 * Subscribe/Unsubscribe to Harvest Reports: Subscribe to receive harvest reports for specific hives. When a harvest occurs, receive a notification via HTTP POST to your specified postUrl, including the hive ID and harvest amount. Unsubscribe when no longer needed.
-
-## API Endpoints
-[Swagger/OpenAPI documentation](https://cscloud8-80.lnu.se/beehive/api/v1/docs/)
