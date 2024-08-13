@@ -6,6 +6,9 @@ import unzip from 'unzipper'
 import { parse } from 'csv-parse'
 import { StatusModel } from '../models/StatusModel.js'
 import { HiveModel } from '../models/HiveModel.js'
+import mongoose from 'mongoose'
+import dotenv from 'dotenv'
+dotenv.config()
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -13,6 +16,19 @@ const __dirname = dirname(__filename)
 const hive = {
   name: 'Kalmar',
   location: 'KalrmarField1'
+}
+
+/**
+ * Connects to the database.
+ */
+const connectToDatabase = async () => {
+  try {
+    await mongoose.connect(process.env.DB_CONNECTION_STRING)
+    console.log('Connected to MongoDB')
+  } catch (error) {
+    console.error('Failed to connect to MongoDB:', error)
+    process.exit(1)
+  }
 }
 
 /**
@@ -55,7 +71,7 @@ export const downloadDataset = async (dataset, tokenPath) => {
       throw new Error(`Failed to download dataset: ${response.statusText}`)
     }
 
-    const destDir = path.join(__dirname, 'data', dataset.replace('/', '_'))
+    const destDir = path.join(__dirname, '..', '..', 'data', dataset.replace('/', '_'))
     const destPath = path.join(destDir, `${dataset.replace('/', '_')}.zip`)
 
     // Ensure the directory exists
@@ -146,3 +162,20 @@ const parseAndSaveCSV = async (csvFilePath) => {
       console.error('Error parsing CSV:', err.message)
     })
 }
+
+/**
+ * The main function that starts the server.
+ */
+const main = async () => {
+  try {
+    await connectToDatabase()
+    const dataset = 'se18m502/bee-hive-metrics'
+    const tokenPath = path.join(__dirname, '..', '..', '.kaggle.json')
+
+    await downloadDataset(dataset, tokenPath)
+  } catch (error) {
+    console.error('Failed to start server:', error)
+  }
+}
+
+main()
