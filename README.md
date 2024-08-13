@@ -5,7 +5,20 @@ Mobile Beehive Platform Monitoring REST API
 This project provides a REST API to comprehensively monitor mobile beehive platforms. This API is designed to comprehensively monitor mobile beehive platforms and provide authenticated access to honeybee data. It utilizes a dataset to mock real-life sensor data.
 
 ## Dataset
-This API uses the Beehive metrics dataset from Kaggle to mock some of the real-life sensor data: [Beehive metrics on Kaggle](https://www.kaggle.com/datasets/se18m502/bee-hive-metrics/data) Although the link contains additional files, I have selected only the following four files: 'flow_2017.csv', 'humidity_2017.csv', 'temperature_2017.csv', and 'weight_2017.csv'. I have also updated the location name from Wurzburg to Kalmar. This dataset encompasses hive flow, humidity, temperature, and weight data for the year 2017.
+This API uses the Beehive Metrics dataset from Kaggle, which includes various sensor data for the year 2017. You can find the dataset here: [Beehive metrics on Kaggle](https://www.kaggle.com/datasets/se18m502/bee-hive-metrics/data). For this project, the following four files are used:
+- `flow_2017.csv`
+- `humidity_2017.csv`
+- `temperature_2017.csv`
+- `weight_2017.csv`
+
+Note that the dataset has been updated to reflect the location name "Kalmar" instead of "Wurzburg". The dataset encompasses hive flow, humidity, temperature, and weight data.
+
+To download the dataset and store it in MongoDB, execute the following command:
+
+```bash
+node src/utils/kaggleDownloader.js
+```
+ 
 
 ## Features
 * Hive Status: Get the latest status values (location, humidity, weight, and temperature) for a specific beehive.
