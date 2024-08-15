@@ -15,7 +15,8 @@ const __dirname = dirname(__filename)
 
 const hive = {
   name: 'Kalmar',
-  location: 'KalrmarField1'
+  location: 'KalrmarField1',
+  author: 'author'
 }
 
 /**

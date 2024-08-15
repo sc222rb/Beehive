@@ -98,11 +98,13 @@ export class HiveController {
    */
   async create (req, res, next) {
     try {
+      const author = req.user.id
       const { name, location } = req.body
 
       const hiveDoc = await HiveModel.create({
         name,
-        location
+        location,
+        author
       })
 
       const resourceLocation = new URL(
@@ -180,5 +182,23 @@ export class HiveController {
     } catch (error) {
       next(error)
     }
+  }
+
+  /**
+   * Checks if the user is the owner of the hive document.
+   * If the user is not the owner, a 403 status is returned with a message.
+   * Otherwise, the next middleware is called.
+   *
+   * @param {object} req - Express request object.
+   * @param {object} res - Express response object.
+   * @param {Function} next - Express next middleware function
+   * @returns {void}
+   */
+  async checkOwnership (req, res, next) {
+    if (req.doc.author !== req.user.id) {
+      return next(createError(403, 'Forbidden'))
+    }
+
+    next()
   }
 }

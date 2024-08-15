@@ -160,6 +160,7 @@ router.get('/:id',
  */
 router.put('/:id',
   authenticateJWT,
+  (req, res, next) => controller.checkOwnership(req, res, next),
   (req, res, next) => controller.update(req, res, next)
 )
 
@@ -192,6 +193,7 @@ router.put('/:id',
  */
 router.delete('/:id',
   authenticateJWT,
+  (req, res, next) => controller.checkOwnership(req, res, next),
   (req, res, next) => controller.delete(req, res, next)
 )
 
