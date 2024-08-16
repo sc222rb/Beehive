@@ -26,6 +26,9 @@ node src/utils/kaggleDownloader.js
 * Hive Weight: Retrieve weight data for a specific hive over a given period.
 * Hive Temperature: Get temperature data for a specific hive over a selected timeframe.
 * Hive Arrival & Departure Flow: Fetch the number of bee arrivals and departures from a specific hive within a selected timeframe.
-* Hive Management: Register, update, or delete beehives.
+* Hive Management: Allows farmers to register, update, and delete their own beehives.
 * Honey Harvesting: Farmers can report the amount of honey harvested on a certain date.
 * Subscribe/Unsubscribe to Harvest Reports: Subscribe to receive harvest reports for specific hives. When a harvest occurs, receive a notification via HTTP POST to your specified postUrl, including the hive ID and harvest amount. Unsubscribe when no longer needed.
+
+## API Documentation
+For detailed API documentation, please refer to the [Swagger document](https://cscloud8-80.lnu.se/beehive/api/v1/docs/) for this application.
