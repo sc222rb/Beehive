@@ -4,7 +4,6 @@
  * @author Sayaka Chishiki Jakobsson
  */
 
-import { HiveModel } from '../../models/HiveModel.js'
 import { StatusModel } from '../../models/StatusModel.js'
 import createError from 'http-errors'
 import http from 'node:http'
@@ -23,25 +22,18 @@ export class StatusController {
    * @param {string} id - The ID of the hive document to load.
    * @returns {Promise<void>} - Promise that resolves when the hive document is loaded and attached to the request object.
    */
-  async loadHiveDocument (req, res, next, id) {
+  async loadDocument (req, res, next, id) {
     try {
-      const { id } = req.params
-      // Get the hive document.
-      const hiveDoc = await HiveModel.findById(id)
-      if (!hiveDoc) {
+      // Get the status document.
+      const statusDoc = await StatusModel.findById(id)
+      if (!statusDoc) {
         // If no document is found, return a 404 status with a message.
-        return next(createError(404, 'Hive not found'))
+        return next(createError(404, 'Status not found'))
       }
 
-      req.doc = hiveDoc
+      req.doc = statusDoc
       next()
     } catch (error) {
-      // Check if the error is a CastError and if it pertains to an ObjectId.
-      if (error instanceof mongoose.Error.CastError && error.kind === 'ObjectId') {
-        return next(createError(404, 'Hive not found'))
-      }
-
-      // Pass any other errors to the next middleware.
       next(error)
     }
   }

@@ -4,11 +4,9 @@
  * @author Sayaka Chishiki Jakobsson
  */
 
-import { HiveModel } from '../../models/HiveModel.js'
 import { HarvestModel } from '../../models/HarvestModel.js'
 import { SubscriptionModel } from '../../models/SubscriptionModel.js'
 import createError from 'http-errors'
-import mongoose from 'mongoose'
 import fetch from 'node-fetch'
 
 /**
@@ -21,28 +19,20 @@ export class HarvestController {
    * @param {object} req - Express request object.
    * @param {object} res - Express response object.
    * @param {Function} next - Express next middleware function.
-   * @param {string} id - The ID of the hive document to load.
+   * @param {string} id - The ID of the harvest document to load.
    * @returns {Promise<void>} - Promise that resolves when the hive document is loaded and attached to the request object.
    */
-  async loadHiveDocument (req, res, next, id) {
+  async loadDocument (req, res, next, id) {
     try {
-      const { id } = req.params
-      // Get the hive document.
-      const hiveDoc = await HiveModel.findById(id)
-      if (!hiveDoc) {
+      const harvestDoc = await HarvestModel.findById(id)
+      if (!harvestDoc) {
         // If no document is found, return a 404 status with a message.
-        return next(createError(404, 'Hive not found'))
+        return next(createError(404, 'harvest not found'))
       }
 
-      req.doc = hiveDoc
+      req.doc = harvestDoc
       next()
     } catch (error) {
-      // Check if the error is a CastError and if it pertains to an ObjectId.
-      if (error instanceof mongoose.Error.CastError && error.kind === 'ObjectId') {
-        return next(createError(404, 'Hive not found'))
-      }
-
-      // Pass any other errors to the next middleware.
       next(error)
     }
   }
@@ -197,5 +187,17 @@ export class HarvestController {
     } catch (error) {
       next(createError(500, 'Failed to fetch harvest report subscriptions', { cause: error }))
     }
+  }
+
+  /**
+   * Sends a JSON response containing harvest of a hive.
+   *
+   * @param {object} req - Express request object.
+   * @param {object} res - Express response object.
+   * @param {Function} next - Express next middleware function.
+   * @returns {Promise<void>} - A promise that resolves when the response is sent.
+   */
+  async find (req, res, next) {
+    res.json(req.doc)
   }
 }

@@ -14,14 +14,8 @@ export const router = express.Router({ mergeParams: true })
 const controller = new HarvestController()
 // Map HTTP verbs and route paths to controller actions.
 
-// Middleware to ensure hiveId is accessible
-router.use((req, res, next) => {
-  req.hiveId = req.params.id
-  next()
-})
-
-// Provide req.hive to the route if :id is present in the route path.
-router.param('id', (req, res, next, id) => controller.loadHiveDocument(req, res, next, id))
+// Provide req.doc to the route if :harvestId is present in the route path.
+router.param('id', (req, res, next, id) => controller.loadDocument(req, res, next, id))
 
 /**
  * @openapi
@@ -63,6 +57,44 @@ router.param('id', (req, res, next, id) => controller.loadHiveDocument(req, res,
 router.post('/',
   authenticateJWT,
   (req, res, next) => controller.create(req, res, next)
+)
+
+/**
+ * @openapi
+ * /api/v1/hives/{id}/harvests/{harvestId}:
+ *   get:
+ *     summary: Retrieve a specific harvest record for a hive
+ *     description: Fetches details of a specific harvest record by its ID for the specified hive.
+ *     tags:
+ *       - Harvests
+ *     parameters:
+ *       - name: hiveId
+ *         in: path
+ *         required: true
+ *         description: ID of the hive to which the harvest belongs
+ *         schema:
+ *           type: string
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID of the harvest record to retrieve
+ *         schema:
+ *           type: string
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       '200':
+ *         description: Successfully retrieved the harvest record
+ *       '404':
+ *         description: Harvest not found or Hive not found
+ *       '401':
+ *         description: Unauthorized
+ *       '500':
+ *         description: Internal server error
+ */
+router.get('/:harvestId',
+  authenticateJWT,
+  (req, res, next) => controller.find(req, res, next)
 )
 
 /**

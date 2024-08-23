@@ -14,14 +14,8 @@ export const router = express.Router({ mergeParams: true })
 const controller = new StatusController()
 // Map HTTP verbs and route paths to controller actions.
 
-// Middleware to ensure hiveId is accessible
-router.use((req, res, next) => {
-  req.hiveId = req.params.id
-  next()
-})
-
-// Provide req.hive to the route if :id is present in the route path.
-router.param('id', (req, res, next, id) => controller.loadHiveDocument(req, res, next, id))
+// Provide req.doc to the route if :statusId is present in the route path.
+router.param('id', (req, res, next, id) => controller.loadDocument(req, res, next, id))
 
 /**
  * @openapi
@@ -321,4 +315,41 @@ router.get('/temperature',
 router.get('/hiveFlow',
   authenticateJWT,
   (req, res, next) => controller.getData(req, res, next, 'Hive Flow', 'hiveFlow')
+)
+
+/**
+ * @openapi
+ * /api/v1/hives/{id}/status/{statusId}:
+ *   get:
+ *     summary: Get a specific status of a hive
+ *     description: Retrieves a specific status record of a hive by its ID, including the details such as humidity, weight, temperature, and more.
+ *     tags:
+ *       - Status
+ *     parameters:
+ *       - name: id
+ *         in: path
+ *         required: true
+ *         description: ID of the hive
+ *         schema:
+ *           type: string
+ *       - name: statusId
+ *         in: path
+ *         required: true
+ *         description: ID of the status record
+ *         schema:
+ *           type: string
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: A JSON object containing the details of the specified status record.
+ *       404:
+ *         description: Status not found or Hive not found.
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Internal server error
+ */
+router.get('/:statusId',
+  (req, res, next) => controller.find(req, res, next)
 )
