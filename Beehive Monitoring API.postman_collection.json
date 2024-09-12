@@ -1,0 +1,1356 @@
+{
+	"info": {
+		"_postman_id": "caebe191-19b1-4a47-90f6-c7c24ba49320",
+		"name": "Beehive Monitoring API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "17366386"
+	},
+	"item": [
+		{
+			"name": "Register Client",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Fixed the syntax error in the existing test script",
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"const response = pm.response.text();",
+							"pm.test(\"Response has id and username\", function () {",
+							"    pm.expect(response).to.include(\"id\");",
+							"    pm.expect(response).to.include(\"username\");",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Generate a random password",
+							"var randomPassword = pm.variables.replaceIn('{{$randomPassword}}');",
+							"",
+							"// Save the random password to an environment variable",
+							"pm.collectionVariables.set('savedRandomPassword', randomPassword);",
+							"",
+							"// Generate a random password",
+							"var randomUserName = pm.variables.replaceIn('{{$randomUserName}}');",
+							"",
+							"// Save the random password to an environment variable",
+							"pm.collectionVariables.set('savedRandomUserName', randomUserName);",
+							"",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"username\": \"{{savedRandomUserName}}\",\n   \"password\": \"{{savedRandomPassword}}\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/register",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login Client",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Extract access token and set as collection variable\", function() {",
+							"    // Check if the response is JSON",
+							"    if (pm.response.headers.get(\"Content-Type\").includes(\"application/json\")) {",
+							"        // Extract the JSON response body",
+							"        const response = pm.response.json();",
+							"        ",
+							"        // Set the access token in the collection variables",
+							"        pm.collectionVariables.set(\"accessToken\", response.access_token); // Adjust this key as needed based on your JSON response structure",
+							"    } else {",
+							"        console.log(\"Response is not JSON:\", pm.response.text());",
+							"    }",
+							"});",
+							"",
+							"",
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response body should have the correct JSON structure\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"username\": \"{{savedRandomUserName}}\",\n   \"password\": \"{{savedRandomPassword}}\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/auth/login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"auth",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get a list of hives",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response is an array\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.be.an('array');",
+							"});",
+							"",
+							"pm.test(\"Response array length is greater than 0\", function () {",
+							"    pm.expect(pm.response.json().length).to.be.above(0);",
+							"});",
+							"",
+							"let responseJson = pm.response.json();",
+							"let firstObjectId = responseJson[0].id;",
+							"pm.collectionVariables.set(\"hiveId\", firstObjectId);",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/hives",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"hives"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create a new hive",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"Location header is present\", function () {",
+							"    pm.response.to.have.header(\"Location\");",
+							"});",
+							"",
+							"pm.test(\"Response should contain valid hive details\", function () {",
+							"    pm.response.to.be.json;",
+							"    pm.response.to.have.jsonBody('name');",
+							"    pm.response.to.have.jsonBody('location');",
+							"});",
+							"",
+							"pm.test(\"Set hive ID to variable\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.collectionVariables.set(\"hive2\", jsonData.id);",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"name\": \"{{$randomLoremWord}}\",\n   \"location\": \"{{$randomLoremWord}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/hives",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"hives"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get a hive info",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"pm.test(\"Response contains hive data\", function () {",
+							"    var jsonData = pm.response.json();",
+							"    pm.expect(jsonData).to.have.property(\"name\");",
+							"    pm.expect(jsonData).to.have.property(\"location\");",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/hives/:hiveId",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"hives",
+						":hiveId"
+					],
+					"variable": [
+						{
+							"key": "hiveId",
+							"value": "{{hive2}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update a hive info",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"",
+							"pm.test(\"Response time is within an acceptable range\", function () {",
+							"  pm.expect(pm.response.responseTime).to.be.below(200);",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"Updated Hive\",\n    \"location\": \"Updated Location\"\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/hives/:hiveId",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"hives",
+						":hiveId"
+					],
+					"variable": [
+						{
+							"key": "hiveId",
+							"value": "{{hive2}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete an existing hive",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/hives/:hiveId",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"hives",
+						":hiveId"
+					],
+					"variable": [
+						{
+							"key": "hiveId",
+							"value": "{{hive2}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Subscribe to harvest report",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response has the required header 'Content-Type'\", function () {",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.exist;",
+							"});",
+							"",
+							"",
+							"pm.test(\"Content-Type header is set to 'application/json'\", function () {",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"postUrl\": \"https://webhook.site/9a34dbe5-67a6-4704-ad61-eff6c41f2a74\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/hives/:hiveId/harvests/webhooks",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"hives",
+						":hiveId",
+						"harvests",
+						"webhooks"
+					],
+					"variable": [
+						{
+							"key": "hiveId",
+							"value": "{{hiveId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Report harvest",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201\", function () {",
+							"    pm.response.to.have.status(201);",
+							"});",
+							"",
+							"pm.test(\"CreatedAt and updatedAt are in a valid date format\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.createdAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z$/, \"CreatedAt should be in valid date format\");",
+							"    pm.expect(responseData.updatedAt).to.match(/^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.\\d{3}Z$/, \"UpdatedAt should be in valid date format\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"harvest\": 45\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/hives/:hiveId/harvests",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"hives",
+						":hiveId",
+						"harvests"
+					],
+					"variable": [
+						{
+							"key": "hiveId",
+							"value": "{{hiveId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get a list for harvest report subscriptions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"  pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response has the required fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object'); // Fixed to validate as an object instead of an array",
+							"    ",
+							"    pm.expect(responseData.location).to.exist; // Changed item.hiveId to responseData.hiveId",
+							"    pm.expect(responseData.name).to.exist; // Changed item.postUrl to responseData.postUrl",
+							"    pm.expect(responseData.author).to.exist;",
+							"    pm.expect(responseData.createdAt).to.exist;",
+							"    pm.expect(responseData.updatedAt).to.exist;",
+							"    pm.expect(responseData.id).to.exist;",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response Content-Type is application/json\", function () {",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/hives/:hiveId/harvests/webhooks",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"hives",
+						":hiveId",
+						"harvests",
+						"webhooks"
+					],
+					"variable": [
+						{
+							"key": "hiveId",
+							"value": "{{hiveId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Unsubscribe",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 204\", function () {",
+							"    pm.response.to.have.status(204);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response body is null\", function () {",
+							"    const responseData = xml2Json(pm.response.text());",
+							"    pm.expect(responseData).to.be.null;",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/hives/:hiveId/harvests/webhooks",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"hives",
+						":hiveId",
+						"harvests",
+						"webhooks"
+					],
+					"variable": [
+						{
+							"key": "hiveId",
+							"value": "{{hiveId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create a new status",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 201\", function () {",
+							"  pm.response.to.have.status(201);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response schema for status update fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData).to.have.property('timestamp').that.is.a('string');",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"hiveId\": \"{{hiveId}}\",\n   \"humidity\": {{$randomInt}},\n   \"weight\": {{$randomInt}},\n   \"temperature\": {{$randomInt}},\n   \"hiveFlow\": {{$randomInt}}\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/hives/:hiveId/status",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"hives",
+						":hiveId",
+						"status"
+					],
+					"variable": [
+						{
+							"key": "hiveId",
+							"value": "{{hiveId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get the status of a hive",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Validate the response schema for the fields required for status\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData).to.have.property('location');",
+							"    pm.expect(responseData).to.have.property('temperature');",
+							"    pm.expect(responseData).to.have.property('humidity');",
+							"});",
+							"",
+							"",
+							"pm.test(\"Validate the response schema for the data types of the status fields\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData).to.be.an('object');",
+							"    pm.expect(responseData.location).to.be.a('string');",
+							"    pm.expect(responseData.temperature).to.be.a('number');",
+							"    pm.expect(responseData.humidity).to.be.a('number');",
+							"    pm.expect(responseData._links.self).to.be.an('object');",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/hives/:hiveId/status",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"hives",
+						":hiveId",
+						"status"
+					],
+					"variable": [
+						{
+							"key": "hiveId",
+							"value": "{{hiveId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get the humidity of a hive",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"  });",
+							"",
+							"",
+							"pm.test(\"Humidity values are within a valid range or data is missing\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('array');",
+							"    ",
+							"    responseData.forEach(function(humidityData) {",
+							"        pm.expect(humidityData).to.be.an('object');",
+							"",
+							"        if (humidityData.humidity !== undefined && humidityData.humidity !== null) {",
+							"            pm.expect(humidityData.humidity).to.be.a('number');",
+							"            pm.expect(humidityData.humidity).to.be.at.least(0);",
+							"        } else {",
+							"            pm.expect(humidityData.humidity).to.be.oneOf([undefined, null]);",
+							"        }",
+							"    });",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/hives/:hiveId/status/humidity?from=2017-06-30&to=2017-07-03",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"hives",
+						":hiveId",
+						"status",
+						"humidity"
+					],
+					"query": [
+						{
+							"key": "from",
+							"value": "2017-06-30"
+						},
+						{
+							"key": "to",
+							"value": "2017-07-03"
+						}
+					],
+					"variable": [
+						{
+							"key": "hiveId",
+							"value": "{{hiveId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get the weight of a hive",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response Content-Type header is application/json\", function () {",
+							"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\");",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response is an array with at least one element\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('array').and.to.have.lengthOf.at.least(1);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Each element in the array has the required fields - weight, timestamp, and id\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('array').that.is.not.empty;",
+							"    ",
+							"    responseData.forEach(function(element) {",
+							"        pm.expect(element).to.have.property('weight');",
+							"        pm.expect(element).to.have.property('timestamp');",
+							"        pm.expect(element).to.have.property('id');",
+							"    });",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/hives/:hiveId/status/weight?from=2017-06-30&to=2017-07-03",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"hives",
+						":hiveId",
+						"status",
+						"weight"
+					],
+					"query": [
+						{
+							"key": "from",
+							"value": "2017-06-30"
+						},
+						{
+							"key": "to",
+							"value": "2017-07-03"
+						}
+					],
+					"variable": [
+						{
+							"key": "hiveId",
+							"value": "{{hiveId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get the temperature of a hive",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Temperature values are within a reasonable range\", function () {",
+							"    const responseData = pm.response.json();",
+							"    ",
+							"    pm.expect(responseData).to.be.an('array');",
+							"    ",
+							"    responseData.forEach(function(data) {",
+							"        pm.expect(data).to.be.an('object');",
+							"        pm.expect(data.temperature).to.be.a('number');",
+							"        pm.expect(data.temperature).to.be.within(-50, 50);",
+							"    });",
+							"});",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/hives/:hiveId/status/temperature?from=2017-06-30&to=2017-07-03",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"hives",
+						":hiveId",
+						"status",
+						"temperature"
+					],
+					"query": [
+						{
+							"key": "from",
+							"value": "2017-06-30"
+						},
+						{
+							"key": "to",
+							"value": "2017-07-03"
+						}
+					],
+					"variable": [
+						{
+							"key": "hiveId",
+							"value": "{{hiveId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get the hive flow of a hive",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"",
+							"pm.test(\"Response has the required fields - hiveFlow, timestamp, and id\", function () {",
+							"    const responseData = pm.response.json();",
+							"",
+							"    pm.expect(responseData).to.be.an('array');",
+							"    ",
+							"    responseData.forEach(function(data) {",
+							"        pm.expect(data.hiveFlow).to.exist;",
+							"        pm.expect(data.timestamp).to.exist;",
+							"        pm.expect(data.id).to.exist;",
+							"    });",
+							"});",
+							"",
+							"",
+							"pm.test(\"Presence of specific header Content-Type in the response\", function () {",
+							"    pm.response.to.have.header(\"Content-Type\");",
+							"});",
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{accessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/hives/:hiveId/status/hiveFlow?from=2017-06-30&to=2017-07-03",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"hives",
+						":hiveId",
+						"status",
+						"hiveFlow"
+					],
+					"query": [
+						{
+							"key": "from",
+							"value": "2017-06-30"
+						},
+						{
+							"key": "to",
+							"value": "2017-07-03"
+						}
+					],
+					"variable": [
+						{
+							"key": "hiveId",
+							"value": "{{hiveId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://cscloud8-80.lnu.se/beehive/api/v1",
+			"type": "string"
+		},
+		{
+			"key": "accessToken",
+			"value": "---",
+			"type": "string"
+		},
+		{
+			"key": "username",
+			"value": ""
+		},
+		{
+			"key": "savedRandomPassword",
+			"value": ""
+		},
+		{
+			"key": "savedRandomUserName",
+			"value": ""
+		},
+		{
+			"key": "hiveId",
+			"value": ""
+		},
+		{
+			"key": "hive2",
+			"value": ""
+		}
+	]
+}
